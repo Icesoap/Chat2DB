@@ -41,7 +41,7 @@
   height: 100%;
   padding: 0px 10px;
   border-radius: 2px;
-  color: var(--color-text-secondary);
+  // color: var(--color-text-secondary);
   .moreButton {
     flex-shrink: 0;
     display: none;
@@ -98,20 +98,31 @@
 }
 
 .contentText {
+  width: 0;
   flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .name {
-  flex: 1;
   .f-lines(1);
 }
+
 .type {
   font-size: 12px;
   flex-shrink: 0;
   text-align: right;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
+  opacity: 0.8;
+}
+
+.describe{
+  flex: 1;
+  font-size: 10px;
+  margin-left: 20px;
+  color: var(--color-text-tertiary);
+  .f-single-line();
 }
 
 .indent {

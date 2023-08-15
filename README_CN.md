@@ -40,10 +40,10 @@ https://github.com/chat2db/Chat2DB/assets/22975773/b58db908-5768-4a71-aa30-135d2
 ## ✨ 特性
 
 - 🌈 AI 智能助手，支持自然语言转 SQL、SQL 转自然语言、SQL 优化建议
-- 🔥 SQL 查询、AI 查询和数据报表完美集成的一体化解决方案设计与实现
-- 👭 支持团队协作，研发无需知道线上数据库密码，解决企业数据库账号安全问题
+- 🔥 智能报表，利用AIGC能力，一句话生成报表。
+- 👭 支持个人模式、支持团队协作模式，让研发协同效率更高。
+- 🔌 除支持目前主流数据库外，还支持国产数据库如：达梦、Oceanbase、人大金仓。
 - ⚙️ 强大的数据管理能力，支持数据表、视图、存储过程、函数、触发器、索引、序列、用户、角色、授权等管理
-- 🔌 强大的扩展能力，目前已经支持 MySQL、PostgreSQL、Oracle、SQLServer、ClickHouse、OceanBase、H2、SQLite 等等，未来会支持更多的数据库
 - 🛡 前端使用 Electron 开发，提供 Windows、Mac、Linux 客户端、网页版本一体化的解决方案
 - 🎁 支持环境隔离、线上、日常数据权限分离
 
@@ -53,38 +53,33 @@ https://github.com/chat2db/Chat2DB/assets/22975773/b58db908-5768-4a71-aa30-135d2
 
 ## ⏬ 下载安装
 
-| 描述                     | 下载地址                                                                                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Windows                  | [https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB%20Setup%202.0.2.exe](https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB%20Setup%202.0.2.exe) |
-| MacOS ARM64 (Apple 芯片) | [https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2-arm64.dmg](https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2-arm64.dmg)         |
-| MacOS X64 (Intel 芯片)   | [https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2.dmg](https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2.dmg)                     |
-| Jar 包                   | [https://oss-chat2db.alibaba.com/release/2.0.2/chat2db-server-start.jar](https://oss-chat2db.alibaba.com/release/2.0.2/chat2db-server-start.jar)       |
+
+[GitHub下载安装包](https://github.com/chat2db/Chat2DB/releases) 
+
+或
+
+[官网下载安装包](https://sqlgpt.cn/docs/guides/download) 
 
 ## 🚀 支持的数据库
 
-| 数据库        | 支持计划 |
-| ------------- | -------- |
-| Mysql         | ✅       |
-| H2            | ✅       |
-| Oracle        | ✅       |
-| PostgreSQL    | ✅       |
-| SQLServer     | ✅       |
-| SQLLite       | ✅       |
-| MariaDB       | ✅       |
-| ClickHouse    | ✅       |
-| DM            | ✅       |
-| Presto        | ✅       |
-| DB2           | ✅       |
-| OceanBase     | ✅       |
-| Redis         | ✅       |
-| Hive          | ✅       |
-| KingBase      | ✅       |
-| MongoDB       | ✅       |
-| Hbase         | Planning |
-| Elasticsearch | Planning |
-| openGauss     | Planning |
-| TiDB          | Planning |
-| InfluxDB      | Planning |
+Chat2DB 支持的数据库连接有:
+- MySQL
+- PostgreSQL
+- H2
+- Oracle
+- SQLServer
+- SQLLite
+- MariaDB
+- ClickHouseare
+- DM
+- Presto
+- DB2
+- OceanBase
+- Hive
+- KingBase
+
+Redis and MongoDB are partially supported , Hbase、Elasticsearch、openGauss、TiDB、InfluxDB will support in the future.
+
 
 ## 🌰 使用 Demo
 
@@ -125,17 +120,14 @@ https://github.com/chat2db/Chat2DB/assets/22975773/b58db908-5768-4a71-aa30-135d2
 ## 📦 Docker 部署
 
 ```bash
-  docker pull chat2db/chat2db:latest
-  // 前台运行,运行后不能关闭命令行
-  docker run -ti --name=chat2db -p 10824:10824 chat2db/chat2db:latest
-  // 后台运行,运行后可以关闭命令行
-  docker run --name=chat2db -p 10824:10824 chat2db/chat2db:latest
-  // 这里正常会提示 Tomcat started on port(s): 10824 (http) with context path 就可以结束了
+  // 拉取最新客户端,然后运行docker,名字是 `chat2db` , 并且将 `/root/.chat2db` 挂载到 `~/.chat2db-docker`
+  docker run --name=chat2db -ti -p 10824:10824 -v ~/.chat2db-docker:/root/.chat2db  chat2db/chat2db:latest
+  // 这里正常会提示`Tomcat started on port(s): 10824 (http) with context path` 就可以结束了
 
-  // 如果这里提示  The container name "/chat2db" is already in use by container, 代表已经存在容器了 运行
-  dcoker run chat2db
-  // 如果想更新chat2db 则需要先rm 再运行
-  dcoker rm chat2db
+  // 如果这里提示  `The container name "/chat2db" is already in use by container`, 代表已经存在容器了 运行
+  docker start chat2db
+  // 如果想更新chat2db 则需要先rm
+  docker rm chat2db
 ```
 
 ## 🎯 运行环境
@@ -157,6 +149,8 @@ $ git clone git@github.com:chat2db/Chat2DB.git
 - 前端调试
 
 ```bash
+node版本必须为16及以上 
+一定要用yarn
 $ cd Chat2DB/chat2db-client
 $ yarn
 $ yarn run start:web
@@ -168,7 +162,7 @@ $ yarn run start:web
 $ cd ../chat2db-server
 $ mvn clean install # 需要安装maven 3.8以上版本
 $ cd chat2db-server/chat2db-server-start/target/
-$ java -jar -Dchatgpt.apiKey=xxxxx chat2db-server-start.jar  # 启动应用 chatgpt.apiKey 需要输入ChatGPT的key,如果不输入无法使用AIGC功能
+$ java -jar -Dloader.path=/lib -Dchatgpt.apiKey=xxxxx chat2db-server-start.jar  # 启动应用 chatgpt.apiKey 需要输入ChatGPT的key,如果不输入无法使用AIGC功能
 ```
 
 ## 📑 文档
@@ -208,7 +202,7 @@ $ java -jar -Dchatgpt.apiKey=xxxxx chat2db-server-start.jar  # 启动应用 chat
 
 加群前请先 Star 和 Fork，谢谢~关注微信公众号可加入微信、钉钉、QQ 群一起讨论，并可以获取 Chat2DB 最新动态和更新。
 
-<a><img src="https://oss-chat2db.alibaba.com/static/%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" width="30%"/></a>
+<a><img src="https://github.com/chat2db/Chat2DB/assets/22975773/e4239d29-1426-4361-bf57-f1b0b67d1281" width="30%"/></a>
 
 ## ❤️ 致谢
 

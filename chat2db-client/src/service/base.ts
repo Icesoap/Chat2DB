@@ -173,12 +173,14 @@ export default function createRequest<P = void, R = {}>(url: string, options?: I
           const { success, errorCode, errorMessage, errorDetail, solutionLink, data } = res;
           if (!success && errorLevel === 'toast' && !noNeedToastErrorCode.includes(errorCode)) {
             delayTimeFn(() => {
-              ErrorNotification({
+              window._notificationApi({
+                requestUrl: eventualUrl,
+                requestParams: JSON.stringify(params),
                 errorCode,
                 errorMessage,
                 errorDetail,
                 solutionLink,
-              });
+              })
               // message.error(`${errorCode}: ${errorMessage}`);
               reject(`${errorCode}: ${errorMessage}`);
             }, delayTime);

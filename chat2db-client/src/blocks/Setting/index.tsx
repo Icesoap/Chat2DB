@@ -9,60 +9,38 @@ import ProxySetting from './ProxySetting';
 import About from './About';
 import { connect } from 'umi';
 import { IAIState } from '@/models/ai';
-import styles from './index.less';
-import configService, { IChatGPTConfig } from '@/service/config';
-import { AiSqlSourceType } from '@/typings/ai';
 import TestVersion from '@/components/TestVersion';
+import { IAiConfig } from '@/typings';
+
+import styles from './index.less';
 
 interface IProps {
+  aiConfig: IAiConfig;
   className?: string;
   text?: string;
   dispatch: Function;
 }
-const initChatGPTConfig = {
-  apiKey: '',
-  httpProxyHost: '',
-  httpProxyPort: '',
-  restAiUrl: '',
-  apiHost: '',
-  restAiStream: true,
-  aiSqlSource: '',
-  azureApiKey: '',
-  azureEndpoint: '',
-  azureDeploymentId: '',
-};
+
 function Setting(props: IProps) {
   const { className, text, dispatch } = props;
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [chatGPTConfig, setChatGPTConfig] = useState<IChatGPTConfig>(initChatGPTConfig);
 
   const [currentMenu, setCurrentMenu] = useState(0);
 
   useEffect(() => {
-    getChatGptSystemConfig();
-  }, []);
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      return;
+    if (isModalVisible) {
+      getAiSystemConfig();
     }
-    getChatGptSystemConfig();
   }, [isModalVisible]);
 
-  const getChatGptSystemConfig = () => {
-    configService.getChatGptSystemConfig().then((res: IChatGPTConfig) => {
-      if (!res) {
-        return;
-      }
-      handleUpdateAiConfig({
-        key: res.apiKey,
-        aiType: res.aiSqlSource,
-      });
-      setChatGPTConfig({
-        ...res,
-        restAiStream: res.restAiStream || true,
-        aiSqlSource: res.aiSqlSource || AiSqlSourceType.CHAT2DBAI,
-      });
+  useEffect(() => {
+    getAiSystemConfig();
+  }, []);
+
+  const getAiSystemConfig = () => {
+    /** 获取ai相关配置 */
+    dispatch({
+      type: 'ai/getAiSystemConfig',
     });
   };
 
@@ -82,18 +60,13 @@ function Setting(props: IProps) {
     setCurrentMenu(t);
   }
 
-  const handleUpdateAiConfig = (payload: IAIState['keyAndAiType']) => {
+  const handleApplyAiConfig = (aiConfig: IAiConfig) => {
     dispatch({
-      type: 'ai/setKeyAndAiType',
-      payload,
-    });
-    dispatch({
-      type: 'ai/fetchRemainingUse',
-      payload: {
-        key: payload.key,
-      },
+      type: 'ai/setAiSystemConfig',
+      payload: aiConfig,
     });
   };
+
   const menusList = [
     {
       label: i18n('setting.nav.basic'),
@@ -103,7 +76,7 @@ function Setting(props: IProps) {
     {
       label: i18n('setting.nav.customAi'),
       icon: '\ue646',
-      body: <AISetting chatGPTConfig={chatGPTConfig} handleUpdateAiConfig={handleUpdateAiConfig} />,
+      body: <AISetting aiConfig={props.aiConfig} handleApplyAiConfig={handleApplyAiConfig} />,
     },
     {
       label: i18n('setting.nav.proxy'),
@@ -126,7 +99,7 @@ function Setting(props: IProps) {
           <Iconfont className={styles.settingIcon} code="&#xe630;"></Iconfont>
         )}
       </div>
-      <TestVersion></TestVersion>
+      <TestVersion />
       <Modal
         open={isModalVisible}
         onOk={handleOk}
@@ -164,5 +137,5 @@ function Setting(props: IProps) {
 }
 
 export default connect(({ ai }: { ai: IAIState }) => ({
-  remainingUse: ai.remainingUse,
+  aiConfig: ai.aiConfig,
 }))(Setting);

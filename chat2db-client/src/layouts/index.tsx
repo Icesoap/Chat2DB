@@ -1,20 +1,16 @@
 import React, { useEffect, useLayoutEffect } from 'react';
 import i18n from '@/i18n';
 import { Outlet } from 'umi';
-import { ConfigProvider, theme, App, Button, Spin } from 'antd';
+import { ConfigProvider, theme, App, Button, Spin, notification } from 'antd';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { getAntdThemeConfig } from '@/theme';
 import { IVersionResponse } from '@/typings';
-import classnames from 'classnames';
-import LoadingLiquid from '@/components/Loading/LoadingLiquid';
-import Setting from '@/blocks/Setting';
 import miscService from '@/service/misc';
-
 import antdEnUS from 'antd/locale/en_US';
 import antdZhCN from 'antd/locale/zh_CN';
 import { useTheme } from '@/hooks';
-import { isEn } from '@/utils/check';
+import { isEn } from '@/i18n';
 import { ThemeType, PrimaryColorType, LangType } from '@/constants/';
 import { InjectThemeVar } from '@/theme';
 import styles from './index.less';
@@ -22,9 +18,7 @@ import { getLang, getPrimaryColor, getTheme, setLang } from '@/utils/localStorag
 import { clearOlderLocalStorage } from '@/utils';
 import registerMessage from './init/registerMessage';
 import registerNotification from './init/registerNotification';
-import { NotificationInstance } from 'antd/es/notification/interface';
-import { ModalStaticFunctions } from 'antd/es/modal/confirm';
-
+import MyNotification from '@/components/MyNotification';
 declare global {
   interface Window {
     _Lang: string;
@@ -33,6 +27,7 @@ declare global {
     _BaseURL: string;
     _AppThemePack: { [key in string]: string };
     _appGatewayParams: IVersionResponse;
+    _notificationApi: any;
   }
   const __APP_VERSION__: string;
   const __BUILD_TIME__: string;
@@ -79,17 +74,12 @@ export default function Layout() {
 /** 重启次数 */
 const restartCount = 200;
 
-let staticNotification: NotificationInstance;
-
 function AppContainer() {
   const { token } = useToken();
   const [initEnd, setInitEnd] = useState(false);
   const [appTheme, setAppTheme] = useTheme();
   const [startSchedule, setStartSchedule] = useState(1); // 0 初始状态 1 服务启动中 2 启动成功
   const [serviceFail, setServiceFail] = useState(false);
-  const { notification } = App.useApp();
-
-  // staticNotification = staticFunction.notification
 
   useEffect(() => {
     let date = new Date('2030-12-30 12:30:00').toUTCString();
@@ -107,7 +97,6 @@ function AppContainer() {
   // 初始化app
   function collectInitApp() {
     monitorOsTheme();
-    initTheme();
     initLang();
     setInitEnd(true);
   }
@@ -126,19 +115,6 @@ function AppContainer() {
     return () => {
       themeMedia.removeListener(change);
     };
-  }
-
-  // 初始化主题
-  function initTheme() {
-    let theme = getTheme();
-    if (theme === ThemeType.FollowOs) {
-      theme =
-        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? ThemeType.Dark
-          : ThemeType.Light) || ThemeType.Dark;
-    }
-    document.documentElement.setAttribute('theme', theme);
-    document.documentElement.setAttribute('primary-color', getPrimaryColor());
   }
 
   // 初始化语言
@@ -212,6 +188,8 @@ function AppContainer() {
           {startSchedule === 2 && <Outlet />}
         </div>
       )}
+      {/* 全局的弹窗 */}
+      <MyNotification></MyNotification>
     </div>
   );
 }

@@ -8,4 +8,15 @@ export default {
   'workspace.menu.unPin': '取消置顶',
   'workspace.menu.deleteTablePlaceHolder': '请输入你要删除的表名',
   'workspace.tips.affirmDeleteTable': '输入的表名与要删除的表名不一致，请再次确认',
-}
+  'workspace.table.total': '总数',
+  'workspace.table.total.tip': '加载总行数',
+  'workspace.table.export.all.csv': '导出结果集 csv',
+  'workspace.table.export.cur.csv': '导出当前页结果集 csv',
+  'workspace.table.export.all.insert': '导出结果集 insert sql',
+  'workspace.table.export.cur.insert': '导出当前页结果集 insert sql',
+  'workspace.tree.view': '视图',
+  'workspace.tree.trigger': '触发器',
+  'workspace.tree.function': '函数',
+  'workspace.tree.procedure': '存储过程',
+
+};

@@ -29,19 +29,9 @@ interface IProps {
 function Connections(props: IProps) {
   const { connectionModel, workspaceModel, dispatch } = props;
   const { connectionList } = connectionModel;
+  const { curWorkspaceParams } = workspaceModel;
   const volatileRef = useRef<any>();
-  // const [connectionList, setConnectionList] = useState<IConnectionDetails[]>();
   const [curConnection, setCurConnection] = useState<Partial<IConnectionDetails>>({});
-
-  useEffect(() => {
-    getConnectionList();
-  }, []);
-
-  const getConnectionList = async () => {
-    dispatch({
-      type: 'connection/fetchConnectionList',
-    });
-  };
 
   function handleCreateConnections(database: IDatabase) {
     setCurConnection({
@@ -61,7 +51,6 @@ function Connections(props: IProps) {
   );
 
   const handleMenuItemDoubleClick = (t?: any) => {
-    console.log(t)
     dispatch({
       type: 'connection/setCurConnection',
       payload: t.meta,
@@ -86,7 +75,9 @@ function Connections(props: IProps) {
               })}
               onDoubleClick={handleMenuItemDoubleClick.bind(null, t)}
               onClick={(event) => {
-                setCurConnection(t.meta);
+                if (curConnection.id !== t.meta?.id) {
+                  setCurConnection(t.meta);
+                }
               }}
             >
               <div className={classnames(styles.menuItemsTitle)}>
@@ -99,25 +90,42 @@ function Connections(props: IProps) {
                     {
                       key: 'EnterWorkSpace',
                       label: i18n('connection.button.connect'),
-                      onClick: () => {
+                      onClick: ({ domEvent }) => {
+                        domEvent.stopPropagation();
                         handleMenuItemDoubleClick(t);
                       },
                     },
                     {
                       key: 'Delete',
                       label: i18n('common.button.delete'),
-                      onClick: async ({ domEvent }) => {
+                      onClick: ({ domEvent }) => {
                         // 禁止冒泡到menuItem
                         domEvent.stopPropagation();
-                        await connectionService.remove({ id: key });
-                        setCurConnection({});
-                        getConnectionList();
+                        connectionService.remove({ id: key }).then(() => {
+                          if (curConnection.id === key) {
+                            setCurConnection({});
+                          }
+                          // // 如果当前工作区正好选中了这个连接，那么就把当前工作区的记录清空
+                          // if (curWorkspaceParams.dataSourceId === key) {
+                          //   dispatch({
+                          //     type: 'workspace/setCurWorkspaceParams',
+                          //     payload: {}
+                          //   })
+                          //   dispatch({
+                          //     type: 'connection/setCurConnection',
+                          //     payload: {}
+                          //   })
+                          // }
+                          dispatch({
+                            type: 'connection/fetchConnectionList',
+                          });
+                        })
                       },
                     },
                   ],
                 }}
               >
-                <div className={styles.moreButton}>
+                <div className={styles.moreButton} onClick={(e) => { e.stopPropagation() }}>
                   <Iconfont code="&#xe601;"></Iconfont>
                 </div>
               </Dropdown>
@@ -128,20 +136,24 @@ function Connections(props: IProps) {
     );
   };
 
+
   return (
     <div className={styles.box}>
       <div ref={volatileRef} className={styles.layoutLeft}>
         <div className={styles.pageTitle}>{i18n('connection.title.connections')}</div>
         {renderMenu()}
-        <Button
-          type="primary"
-          className={styles.addConnection}
-          onClick={() => {
-            setCurConnection({});
-          }}
-        >
-          {i18n('connection.button.addConnection')}
-        </Button>
+        {
+          curConnection && !!Object.keys(curConnection).length &&
+          <Button
+            type="primary"
+            className={styles.addConnection}
+            onClick={() => {
+              setCurConnection({});
+            }}
+          >
+            {i18n('connection.button.addConnection')}
+          </Button>
+        }
       </div>
       <div className={styles.layoutRight}>
         {curConnection && Object.keys(curConnection).length ? (
@@ -150,38 +162,47 @@ function Connections(props: IProps) {
               [styles.showCreateConnections]: Object.keys(curConnection).length,
             })}
           >
-            <CreateConnection
-              connectionData={curConnection as any}
-              closeCreateConnection={() => {
-                setCurConnection({});
-              }}
-              submitCallback={getConnectionList}
-            />
+            {
+              <CreateConnection
+                connectionData={curConnection as any}
+                closeCreateConnection={() => {
+                  setCurConnection({});
+                }}
+                submitCallback={() => {
+                  dispatch({
+                    type: 'connection/fetchConnectionList',
+                    callback: (res: any) => {
+                      setCurConnection(res.data[res.data?.length - 1]);
+                    }
+                  });
+                }}
+              />
+            }
           </div>
         ) : (
-            <div className={styles.dataBaseList}>
-              {databaseTypeList.map((t) => {
-                return (
-                  <div key={t.code} className={styles.databaseItem} onClick={handleCreateConnections.bind(null, t)}>
-                    <div className={styles.databaseItemMain}>
-                      <div className={styles.databaseItemLeft}>
-                        <div className={styles.logoBox}>
-                          <Iconfont code={t.icon} />
-                        </div>
-                        {t.name}
+          <div className={styles.dataBaseList}>
+            {databaseTypeList.map((t) => {
+              return (
+                <div key={t.code} className={styles.databaseItem} onClick={handleCreateConnections.bind(null, t)}>
+                  <div className={styles.databaseItemMain}>
+                    <div className={styles.databaseItemLeft}>
+                      <div className={styles.logoBox}>
+                        <Iconfont code={t.icon} />
                       </div>
-                      <div className={styles.databaseItemRight}>
-                        <Iconfont code="&#xe631;" />
-                      </div>
+                      {t.name}
+                    </div>
+                    <div className={styles.databaseItemRight}>
+                      <Iconfont code="&#xe631;" />
                     </div>
                   </div>
-                );
-              })}
-              {Array.from({ length: 20 }).map((t, index) => {
-                return <div key={index} className={styles.databaseItemSpacer}></div>;
-              })}
-            </div>
-          )}
+                </div>
+              );
+            })}
+            {Array.from({ length: 20 }).map((t, index) => {
+              return <div key={index} className={styles.databaseItemSpacer}></div>;
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

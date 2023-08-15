@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ConnectionInfoAspect
 @RequestMapping("/api/rdb/ddl")
 @RestController
+@Deprecated
 public class RdbDdlController {
 
     @Autowired
@@ -182,6 +183,8 @@ public class RdbDdlController {
             .schemaName(request.getSchemaName()).newSchemaName(request.getNewSchemaName()).build();
         return databaseService.modifySchema(param);
     }
+
+
 
     /**
      * 查询当前DB下的表columns

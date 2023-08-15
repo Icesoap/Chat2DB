@@ -1,13 +1,17 @@
 
 package ai.chat2db.spi.ssh;
 
+import java.security.Security;
+
 import ai.chat2db.server.tools.common.exception.ConnectionException;
 import ai.chat2db.spi.model.SSHInfo;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.extra.ssh.JschUtil;
+import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * @author jipengfei
@@ -16,18 +20,34 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class SSHManager {
 
-    public static Session getSSHSession(SSHInfo ssh) {
-        Session session;
+    static {
         try {
-            byte[] passphrase = StringUtils.isNotBlank(ssh.getPassphrase()) ? StringUtils.getBytes(ssh.getPassphrase(),
-                "UTF-8") : null;
-            session = JschUtil.getSession(ssh.getHostName(), Integer.parseInt(ssh.getPort()), ssh.getUserName(),
-                ssh.getKeyFile(), passphrase);
+            Security.insertProviderAt(new BouncyCastleProvider(), 1);
+            JSch.setConfig("kex", JSch.getConfig("kex") + ",diffie-hellman-group1-sha1");
+            JSch.setConfig("server_host_key", JSch.getConfig("server_host_key") + ",ssh-rsa,ssh-dss");
+        }catch (Exception e){
+            log.error("SSHManager init error",e);
+        }
+    }
+
+    public static Session getSSHSession(SSHInfo ssh) {
+        Session session = null;
+        try {
+            if (StringUtils.isNotBlank(ssh.getKeyFile())) {
+                byte[] passphrase = StringUtils.isNotBlank(ssh.getPassphrase()) ? StringUtils.getBytes(
+                    ssh.getPassphrase(),
+                    "UTF-8") : null;
+                session = JschUtil.getSession(ssh.getHostName(), Integer.parseInt(ssh.getPort()), ssh.getUserName(),
+                    ssh.getKeyFile(), passphrase);
+            } else if (StringUtils.isNotBlank(ssh.getUserName())) {
+                session = JschUtil.getSession(ssh.getHostName(), Integer.parseInt(ssh.getPort()), ssh.getUserName(),
+                    ssh.getPassword());
+            }
 
         } catch (Exception e) {
             throw new ConnectionException("connection.ssh.error", null, e);
         }
-        if (StringUtils.isNotBlank(ssh.getRHost()) && StringUtils.isNotBlank(ssh.getRPort())) {
+        if (session != null && StringUtils.isNotBlank(ssh.getRHost()) && StringUtils.isNotBlank(ssh.getRPort())) {
             try {
                 int localPort = !StringUtils.isBlank(ssh.getLocalPort()) ? Integer.parseInt(ssh.getLocalPort())
                     : NetUtil.getUsableLocalPort();

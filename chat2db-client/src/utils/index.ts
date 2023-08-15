@@ -1,6 +1,9 @@
-import { ThemeType } from '@/constants';
+import { ThemeType, OSType, DatabaseTypeCode } from '@/constants';
 import { ITreeNode } from '@/typings';
+import clipboardCopy from 'copy-to-clipboard';
 import lodash from 'lodash';
+import sqlServer from '@/service/sql';
+import { format } from 'sql-formatter';
 
 export function getOsTheme() {
   return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -195,3 +198,62 @@ export function isVersionHigher(version: string, currentVersion: string): boolea
   // 如果两个版本号完全相等，则返回false
   return false;
 }
+
+// Copy
+export function copy(message: string) {
+  clipboardCopy(message);
+}
+
+// 获取应用的一些基本信息
+export function getApplicationMessage() {
+  const env = __ENV__;
+  const versions = __APP_VERSION__;
+  const buildTime = __BUILD_TIME__;
+  const userAgent = navigator.userAgent;
+  return {
+    env,
+    versions,
+    buildTime,
+    userAgent
+  }
+}
+
+// os is mac or windows
+export function OSnow(): {
+  isMac: boolean;
+  isWin: boolean;
+} {
+  const agent = navigator.userAgent.toLowerCase();
+  const isMac = /macintosh|mac os x/i.test(navigator.userAgent);
+  const isWin = agent.indexOf("win32") >= 0 || agent.indexOf("wow32") >= 0 || agent.indexOf("win64") >= 0 || agent.indexOf("wow64") >= 0
+  return {
+    isMac,
+    isWin
+  }
+}
+
+// 格式化sql
+export function formatSql(sql: string, dbType: DatabaseTypeCode) {
+  return new Promise((r: (sql: string) => void, j) => {
+    let formatRes = '';
+    try {
+      formatRes = format(sql || '');
+    }
+    catch { 
+
+    }
+    // 如果格式化失败，直接返回原始sql
+    if (!formatRes) {
+      sqlServer.sqlFormat({
+        sql,
+        dbType,
+      }).then((res) => {
+        formatRes = res;
+        r(formatRes);
+      })
+    } else {
+      r(formatRes);
+    }
+  })
+}
+

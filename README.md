@@ -1,4 +1,3 @@
-<h1 align="center">Chat2DB</h1>
 
 <div align="center">
 
@@ -47,56 +46,51 @@ https://github.com/chat2db/Chat2DB/assets/22975773/79e9dded-375b-44cf-9979-bb757
 
 ## ⏬ Download and Install
 
-| Description | Download                                                                                                                                               |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Windows     | [https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB%20Setup%202.0.2.exe](https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB%20Setup%202.0.2.exe) |
-| MacOS ARM64 | [https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2-arm64.dmg](https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2-arm64.dmg)         |
-| MacOS X64   | [https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2.dmg](https://oss-chat2db.alibaba.com/release/2.0.2/Chat2DB-2.0.2.dmg)                     |
-| Jar 包      | [https://oss-chat2db.alibaba.com/release/2.0.2/chat2db-server-start.jar](https://oss-chat2db.alibaba.com/release/2.0.2/chat2db-server-start.jar)       |
+[Downloading installation package from GitHub](https://github.com/chat2db/Chat2DB/releases) 
+
+
+[Downloading installation package from official website](https://sqlgpt.cn/docs/guides/download) 
+
+
 
 ## 🚀 Supported databases
 
-| Databases     | Status   |
-| ------------- | -------- |
-| Mysql         | ✅       |
-| H2            | ✅       |
-| Oracle        | ✅       |
-| PostgreSQL    | ✅       |
-| SQLServer     | ✅       |
-| SQLLite       | ✅       |
-| MariaDB       | ✅       |
-| ClickHouse    | ✅       |
-| DM            | ✅       |
-| Presto        | ✅       |
-| DB2           | ✅       |
-| OceanBase     | ✅       |
-| Redis         | ✅       |
-| Hive          | ✅       |
-| KingBase      | ✅       |
-| MongoDB       | ✅       |
-| Hbase         | Planning |
-| Elasticsearch | Planning |
-| openGauss     | Planning |
-| TiDB          | Planning |
-| InfluxDB      | Planning |
+Chat2DB supports connecting to the following databases:
+- MySQL
+- PostgreSQL
+- H2
+- Oracle
+- SQLServer
+- SQLLite
+- MariaDB
+- ClickHouseare
+- DM
+- Presto
+- DB2
+- OceanBase
+- Hive
+- KingBase
+
+Redis and MongoDB are partially supported , Hbase、Elasticsearch、openGauss、TiDB、InfluxDB will support in the future.
 
 ## 🌰 Demo
 
 ### Create data source
 
-<a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/1d7f2d05-9c3b-4308-a693-39aed44a4b39.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
+<a><img width="1720" alt="crete datasource" src="https://github.com/chat2db/Chat2DB/assets/22975773/16050747-0f6c-4e98-ba91-323033584eec"></a>
+
 
 ### Data source management
 
-<a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/d5634953-9fe5-4a03-8024-3aa4774b2955.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
+<a><img width="1720" alt="2" src="https://github.com/chat2db/Chat2DB/assets/22975773/5d0332ca-8a65-4ed9-95fb-b12fae9209f3"></a>
 
 ### SQL console
 
-<a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/f1a111bd-38cf-42d2-bfd3-f1d7f57aec3c.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
+<a><img width="1720" alt="2" src="https://github.com/chat2db/Chat2DB/assets/22975773/5d0332ca-8a65-4ed9-95fb-b12fae9209f3"></a>
 
 ### AI intelligent assistant
 
-<a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/16e3c632-f896-45c3-a7a2-91c338e82f73.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
+![image](https://github.com/chat2db/Chat2DB/assets/22975773/2dfc4aaa-c5a3-42c3-bc61-28ebc237a27b)
 
 ## 🔥 AI Configuration
 
@@ -107,7 +101,8 @@ Option 1 (recommended): To use the ChatSql function of OPENAI, two conditions mu
 - You need an OPENAI_API_KEY.
 - The client's network can connect to the OPENAI website, and for users in China, a VPN is required. Note: If the local VPN is not fully effective, the network connectivity can be ensured by setting the network proxy HOST and PORT in the client.
 
-<a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/0218daf0-7d93-43c5-a5f7-decd104c0847.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
+<img width="1717" alt="3" src="https://github.com/chat2db/Chat2DB/assets/22975773/95c8a766-cc6b-4767-90e6-a8b616a89bc7">
+
 
 Option 2 (recommended): We provide a unified proxy service.
 
@@ -116,20 +111,30 @@ Option 2 (recommended): We provide a unified proxy service.
 
 To facilitate users' quick use of AI capabilities, you can scan the QR code below to follow our WeChat public account and apply for our custom API_KEY.
 
-<a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/5ee43d26-05bb-4b12-b705-2b263f167975.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
+<img width="1726" alt="4" src="https://github.com/chat2db/Chat2DB/assets/22975773/9236ff01-e49f-4e45-96b0-201e85fcd756">
+
 
 ### CONFIGURE CUSTOM AI
 
 - Customized AI can be any LLM that you deployed, such as ChatGLM、ChatGPT、ERNIE Bot、Tongyi Qianwen, and so on. However, the customized interface need to conform to the protocol definition. Otherwise, secondary development may be required. Two DEMOs are provided in the code, the configuration is as shown below. In specific use, you can refer to the DEMO interface to write a custom interface, or directly perform secondary development in the DEMO interface.
 - DEMO for configuring customized stream output interface.
-  <a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/3b74fea5-526d-40ea-9edb-27484921c578.png?x-oss-process=image/resize,w_1280,m_lfit,limit_1"/></a>
 - DEMO for configuring customized non-stream output interface.
-  <a><img src="https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/KM7qezzyAVX2Opj8/img/eb82d1ee-ab13-46f8-a454-60968482e584.png#1011"/></a>
+<img width="1722" alt="5" src="https://github.com/chat2db/Chat2DB/assets/22975773/aff8497e-3edb-449d-a7d4-bb0429abc67c">
+
 
 ## 📦 Docker installation
 
 ```bash
-docker pull chat2db/chat2db:latest
+```bash
+  // Pull the latest client, then run Docker with the name 'chat2db', and mount 'root. chat2db' to '~. chat2db Docker'`
+  docker run --name=chat2db -ti -p 10824:10824 -v ~/.chat2db-docker:/root/.chat2db  chat2db/chat2db:latest
+  // The normal prompt here is' Tomcat started on port (s): 10824 (http) with context path ', which will complete the process
+
+  // If the prompt 'The container name "chat2db" is already in use by container' appears here, it means that the container already exists and is running
+  docker start chat2db
+  // If you want to update chat2db, you need to first rm
+  docker rm chat2db
+```
 ```
 
 ## 🎯 Operating Environment
@@ -151,6 +156,8 @@ $ git clone git@github.com:alibaba/Chat2DB.git
 - Front-End debug
 
 ```bash
+node version must be 16 or later
+Be sure to use yarn
 $ cd Chat2DB/chat2db-client
 $ yarn
 $ yarn run start:web
@@ -162,7 +169,7 @@ $ yarn run start:web
 $ cd ../chat2db-server
 $ mvn clean install # maven 3.8 or later needs to be installed
 $ cd chat2db-server/chat2db-server-start/target/
-$ java -jar -Dchatgpt.apiKey=xxxxx chat2db-server-start.jar  # To launch the chat application, you need to enter the ChatGPT key for the chatgpt.apiKey. Without entering it, you won't be able to use the AIGC function.
+$ java -jar  -Dloader.path=/lib -Dchatgpt.apiKey=xxxxx chat2db-server-start.jar  # To launch the chat application, you need to enter the ChatGPT key for the chatgpt.apiKey. Without entering it, you won't be able to use the AIGC function.
 ```
 
 ## 📑 Documentation
@@ -183,7 +190,7 @@ $ java -jar -Dchatgpt.apiKey=xxxxx chat2db-server-start.jar  # To launch the cha
 Please star and fork on GitHub before joining the group.
 Follow our WeChat public account.
 
-<a><img src="https://oss-chat2db.alibaba.com/static/%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" width="40%"/></a>
+<a><img src="https://github.com/chat2db/Chat2DB/assets/22975773/e4239d29-1426-4361-bf57-f1b0b67d1281" width="40%"/></a>
 
 ## ❤️ Acknowledgements
 

@@ -1,6 +1,6 @@
 import { theme } from 'antd';
 import { PrimaryColorType } from '@/constants';
-import { commonToken } from './common';
+import { commonToken } from '../common';
 
 type IAntdPrimaryColor = {
   [key in PrimaryColorType]: any;
@@ -12,10 +12,25 @@ const antdPrimaryColor: IAntdPrimaryColor = {
     colorPrimary: '#3c8618',
   },
   [PrimaryColorType.Golden_Purple]: {
-    colorPrimary: '#51258f',
+    colorPrimary: '#7688c9',
   },
   [PrimaryColorType.Polar_Blue]: {
     colorPrimary: '#1677ff',
+  },
+  [PrimaryColorType.Silver]: {
+    colorPrimary: '#c3b7a4',
+  },
+  [PrimaryColorType.Red]: {
+    colorPrimary: '#fd6874',
+  },
+  [PrimaryColorType.Orange]: {
+    colorPrimary: '#ffa940',
+  },
+  [PrimaryColorType.Blue2]: {
+    colorPrimary: '#009cc7',
+  },
+  [PrimaryColorType.Gold]: {
+    colorPrimary: '#b59a6d',
   },
 };
 
@@ -25,12 +40,13 @@ const antDarkTheme = {
   antdPrimaryColor,
   token: {
     ...commonToken,
-    colorText: "rgb(241, 241, 244)",
+    colorTextBase: 'rgb(241, 241, 244)',
     colorBgBase: '#0a0b0c',
     colorHoverBg: 'hsla(0, 0%, 100%, 0.03)',
     colorBgContainer: '#0a0b0c',
     colorBgElevated: '#131418',
-    colorBorder: '#36373a',
+    colorBorder: 'rgba(54, 55, 58,0.4)',
+    colorBorderSecondary: 'rgba(54, 55, 58,0.4)',
   },
 };
 

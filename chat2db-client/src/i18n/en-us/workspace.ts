@@ -7,5 +7,16 @@ export default {
   'workspace.menu.pin': 'Pin',
   'workspace.menu.unPin': 'Unpin',
   'workspace.menu.deleteTablePlaceHolder': 'Please enter the name of the table you want to delete',
-  'workspace.tips.affirmDeleteTable': 'The table name you entered is not the same as the table name you want to delete, please confirm again',
+  'workspace.tips.affirmDeleteTable':
+    'The table name you entered is not the same as the table name you want to delete, please confirm again',
+  'workspace.table.total': 'Total',
+  'workspace.table.total.tip': 'Load total number of rows',
+  'workspace.table.export.all.csv': 'Export result set csv',
+  'workspace.table.export.cur.csv': 'Export result of current page set csv',
+  'workspace.table.export.all.insert': 'Export result set insert sql',
+  'workspace.table.export.cur.insert': 'Export result of current page set insert sql',
+  'workspace.tree.view': 'View',
+  'workspace.tree.trigger': 'Trigger',
+  'workspace.tree.function': 'Function',
+  'workspace.tree.procedure': 'Procedure',
 };
