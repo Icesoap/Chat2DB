@@ -50,6 +50,7 @@ public class ClaudeAIEventSourceListener extends EventSourceListener {
                 .data("[DONE]")
                 .reconnectTime(3000));
             sseEmitter.complete();
+            
             return;
         }
         // 读取Json

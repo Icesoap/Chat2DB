@@ -9,6 +9,7 @@ import ai.chat2db.server.domain.api.model.Config;
 import ai.chat2db.server.domain.api.service.ConfigService;
 
 import com.google.common.collect.Lists;
+import com.unfbx.chatgpt.OpenAiClient;
 import com.unfbx.chatgpt.OpenAiStreamClient;
 import com.unfbx.chatgpt.constant.OpenAIConst;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,10 @@ public class OpenAIClient {
     public static final String PROXY_PORT = "chatgpt.proxy.port";
 
     private static OpenAiStreamClient OPEN_AI_STREAM_CLIENT;
+
+    private static OpenAiClient OPEN_AI_CLIENT;
+
+
     private static String apiKey;
 
     public static OpenAiStreamClient getInstance() {
@@ -98,6 +103,78 @@ public class OpenAIClient {
         } else {
             OPEN_AI_STREAM_CLIENT = OpenAiStreamClient.builder().apiHost(apiHost).apiKey(
                 Lists.newArrayList(apikey)).build();
+        }
+        apiKey = apikey;
+    }
+
+
+    /**
+     * 返回普通客户端实例
+     * @return
+     */
+    public static OpenAiClient getNormalInstance() {
+        if (OPEN_AI_CLIENT != null) {
+            return OPEN_AI_CLIENT;
+        } else {
+            return singletonNormal();
+        }
+    }
+
+    /**
+     * 普通客户端单例模式
+     * @return
+     */
+    private static OpenAiClient singletonNormal() {
+        if (OPEN_AI_CLIENT == null) {
+            synchronized (OpenAIClient.class) {
+                if (OPEN_AI_CLIENT == null) {
+                    refreshNormal();
+                }
+            }
+        }
+        return OPEN_AI_CLIENT;
+    }
+
+    /**
+     * 普通客户端单例模式创建
+     */
+    public static void refreshNormal() {
+        String apikey;
+        String apiHost = ApplicationContextUtil.getProperty(OPENAI_HOST);
+        if (StringUtils.isBlank(apiHost)) {
+            apiHost = OpenAIConst.OPENAI_HOST;
+        }
+        ConfigService configService = ApplicationContextUtil.getBean(ConfigService.class);
+        Config apiHostConfig = configService.find(OPENAI_HOST).getData();
+        if (apiHostConfig != null) {
+            apiHost = apiHostConfig.getContent();
+        }
+        Config config = configService.find(OPENAI_KEY).getData();
+        if (config != null) {
+            apikey = config.getContent();
+        } else {
+            apikey = ApplicationContextUtil.getProperty(OPENAI_KEY);
+        }
+        String host = System.getProperty("http.proxyHost");
+        Config hostConfig = configService.find(PROXY_HOST).getData();
+        if (hostConfig != null) {
+            host = hostConfig.getContent();
+        }
+        Integer port = Objects.nonNull(System.getProperty("http.proxyPort")) ? Integer.valueOf(
+                System.getProperty("http.proxyPort")) : null;
+        Config portConfig = configService.find(PROXY_PORT).getData();
+        if (portConfig != null && StringUtils.isNotBlank(portConfig.getContent())) {
+            port = Integer.valueOf(portConfig.getContent());
+        }
+        log.info("refresh openai apikey:{}", maskApiKey(apikey));
+        if (Objects.nonNull(host) && Objects.nonNull(port)) {
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+            OkHttpClient okHttpClient = new OkHttpClient.Builder().proxy(proxy).build();
+            OPEN_AI_CLIENT = OpenAiClient.builder().apiHost(apiHost).apiKey(
+                    Lists.newArrayList(apikey)).okHttpClient(okHttpClient).build();
+        } else {
+            OPEN_AI_CLIENT = OpenAiClient.builder().apiHost(apiHost).apiKey(
+                    Lists.newArrayList(apikey)).build();
         }
         apiKey = apikey;
     }

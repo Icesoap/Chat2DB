@@ -223,6 +223,7 @@ function Console(props: IProps) {
     handleAiChat(content, promptType, aiConfig);
   };
 
+  //TODO AI Chat 入口
   const handleAiChat = async (content: string, promptType: IPromptType, aiConfig?: IAiConfig) => {
     const { apiKey, aiSqlSource } = aiConfig || props.aiModel?.aiConfig || {};
     const isChat2DBAi = aiSqlSource === AiSqlSourceType.CHAT2DBAI;
@@ -247,11 +248,14 @@ function Console(props: IProps) {
       schemaName,
       tableNames: selectedTables,
     });
+    console.log("params:"+params)
 
     const handleMessage = (message: string) => {
       // console.log('message', message);
       setIsLoading(false);
       try {
+        // alert('isChat2DBAi:'+isChat2DBAi);
+        // alert('isNL2SQL:'+isNL2SQL);
         const isEOF = message === '[DONE]';
         if (isEOF) {
           closeEventSource();
@@ -333,6 +337,7 @@ function Console(props: IProps) {
   };
 
   const executeSQL = (sql?: string) => {
+    // alert("executeSQL")
     const sqlContent = sql || editorRef?.current?.getCurrentSelectContent() || editorRef?.current?.getAllContent();
 
     if (!sqlContent) {
@@ -413,11 +418,13 @@ function Console(props: IProps) {
             remainingBtnLoading={props.remainingBtnLoading}
             tables={tableListName}
             onPressEnter={(value: string) => {
+              // alert("onPressEnter")
               handleAiChat(value, IPromptType.NL_2_SQL);
             }}
             selectedTables={selectedTables}
             onSelectTables={(tables: string[]) => {
-              if (tables.length > 8) {
+              //TODO 最多选多少表
+              if (tables.length > 200) {
                 message.warning({
                   content: i18n('chat.input.tableSelect.error.TooManyTable'),
                 });
@@ -453,7 +460,7 @@ function Console(props: IProps) {
 
       <div className={styles.consoleOptionsWrapper}>
         <div className={styles.consoleOptionsLeft}>
-          <Button type="primary" className={styles.runButton} onClick={() => executeSQL()}>
+          <Button type="primary" className={styles.runButton} onClick={() =>  executeSQL()}>
             <Iconfont code="&#xe637;" />
             {i18n('common.button.execute')}
           </Button>

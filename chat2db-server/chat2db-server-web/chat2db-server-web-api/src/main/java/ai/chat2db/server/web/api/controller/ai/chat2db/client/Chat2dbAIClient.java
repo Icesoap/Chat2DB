@@ -25,6 +25,8 @@ public class Chat2dbAIClient {
     public static final String CHAT2DB_OPENAI_HOST = "chat2db.apiHost";
 
 
+
+
     private static OpenAiStreamClient CHAT2DB_AI_STREAM_CLIENT;
     private static String apiKey;
 

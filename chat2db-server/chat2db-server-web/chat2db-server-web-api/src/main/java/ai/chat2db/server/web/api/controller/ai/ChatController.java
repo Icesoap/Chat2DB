@@ -3,10 +3,7 @@ package ai.chat2db.server.web.api.controller.ai;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ai.chat2db.server.domain.api.enums.AiSqlSourceEnum;
@@ -19,6 +16,7 @@ import ai.chat2db.server.domain.api.service.TableService;
 import ai.chat2db.server.tools.base.wrapper.result.DataResult;
 import ai.chat2db.server.tools.common.exception.ParamBusinessException;
 import ai.chat2db.server.tools.common.util.EasyEnumUtils;
+import ai.chat2db.server.web.api.ApiResult;
 import ai.chat2db.server.web.api.aspect.ConnectionInfoAspect;
 import ai.chat2db.server.web.api.controller.ai.azure.client.AzureOpenAIClient;
 import ai.chat2db.server.web.api.controller.ai.azure.models.AzureChatMessage;
@@ -44,6 +42,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.unfbx.chatgpt.entity.chat.ChatChoice;
+import com.unfbx.chatgpt.entity.chat.ChatCompletionResponse;
 import com.unfbx.chatgpt.entity.chat.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -108,10 +108,11 @@ public class ChatController {
 
 
     //TODO  自定义模型流式输出接口DEMO
+
     /**
      * 自定义模型流式输出接口DEMO
      * <p>
-     *     Note:使用自己本地的流式输出的自定义AI，接口输入和输出需与该样例保持一致
+     * Note:使用自己本地的流式输出的自定义AI，接口输入和输出需与该样例保持一致
      * </p>
      *
      * @param queryRequest
@@ -150,7 +151,7 @@ public class ChatController {
     /**
      * 自定义模型非流式输出接口DEMO
      * <p>
-     *     Note:使用自己本地的飞流式输出自定义AI，接口输入和输出需与该样例保持一致
+     * Note:使用自己本地的飞流式输出自定义AI，接口输入和输出需与该样例保持一致
      * </p>
      *
      * @param queryRequest
@@ -175,7 +176,9 @@ public class ChatController {
     @GetMapping("/chat")
     @CrossOrigin
     public SseEmitter completions(ChatQueryRequest queryRequest, @RequestHeader Map<String, String> headers)
-        throws IOException {
+            throws IOException {
+        log.info(queryRequest.getTableNames().toString());
+        log.info(queryRequest.getMessage());
         //默认30秒超时,设置为0L则永不超时
         SseEmitter sseEmitter = new SseEmitter(CHAT_TIMEOUT);
         String uid = headers.get("uid");
@@ -188,7 +191,69 @@ public class ChatController {
             throw new ParamBusinessException("message");
         }
 
+//        return distributeAISql(queryRequest, sseEmitter, uid);
         return distributeAISql(queryRequest, sseEmitter, uid);
+    }
+
+    /**
+     * SQL转换模型
+     *
+     * @param queryRequest
+     * @param headers
+     * @return
+     * @throws IOException
+     */
+    @GetMapping("/chat_json")
+    @CrossOrigin
+    public ApiResult completionsNotStream(ChatQueryRequest queryRequest, @RequestHeader Map<String, String> headers)
+            throws Exception {
+        log.info(queryRequest.getTableNames().toString());
+        log.info(queryRequest.getMessage());
+        //默认30秒超时,设置为0L则永不超时
+        SseEmitter sseEmitter = new SseEmitter(CHAT_TIMEOUT);
+        String uid = headers.get("uid");
+        if (StrUtil.isBlank(uid)) {
+            throw new ParamBusinessException("uid");
+        }
+
+        //提示消息不得为空
+        if (StringUtils.isBlank(queryRequest.getMessage())) {
+            throw new ParamBusinessException("message");
+        }
+
+        return distributeAISqlNormal(queryRequest, sseEmitter, uid);
+    }
+
+    /**
+     * distribute with different AI
+     *
+     * @return
+     */
+    private ApiResult distributeAISqlNormal(ChatQueryRequest queryRequest, SseEmitter sseEmitter, String uid) throws IOException {
+        ConfigService configService = ApplicationContextUtil.getBean(ConfigService.class);
+        Config config = configService.find(RestAIClient.AI_SQL_SOURCE).getData();
+        String aiSqlSource = AiSqlSourceEnum.CHAT2DBAI.getCode();
+        if (Objects.nonNull(config)) {
+            aiSqlSource = config.getContent();
+        }
+        AiSqlSourceEnum aiSqlSourceEnum = AiSqlSourceEnum.getByName(aiSqlSource);
+        if (Objects.isNull(aiSqlSourceEnum)) {
+            aiSqlSourceEnum = AiSqlSourceEnum.OPENAI;
+        }
+        uid = aiSqlSourceEnum.getCode() + uid;
+        switch (Objects.requireNonNull(aiSqlSourceEnum)) {
+            case OPENAI:
+                return chatWithOpenAiNormal(queryRequest, sseEmitter, uid);
+            case CHAT2DBAI:
+                //return chatWithChat2dbAi(queryRequest, sseEmitter, uid);
+            case RESTAI:
+                //return chatWithRestAi(queryRequest, sseEmitter);
+            case AZUREAI:
+                //return chatWithAzureAi(queryRequest, sseEmitter, uid);
+            case CLAUDEAI:
+                //return chatWithClaudeAi(queryRequest, sseEmitter, uid);
+        }
+        return chatWithOpenAiNormal(queryRequest, sseEmitter, uid);
     }
 
     /**
@@ -209,13 +274,13 @@ public class ChatController {
         }
         uid = aiSqlSourceEnum.getCode() + uid;
         switch (Objects.requireNonNull(aiSqlSourceEnum)) {
-            case OPENAI :
+            case OPENAI:
                 return chatWithOpenAi(queryRequest, sseEmitter, uid);
             case CHAT2DBAI:
                 return chatWithChat2dbAi(queryRequest, sseEmitter, uid);
-            case RESTAI :
+            case RESTAI:
                 return chatWithRestAi(queryRequest, sseEmitter);
-            case AZUREAI :
+            case AZUREAI:
                 return chatWithAzureAi(queryRequest, sseEmitter, uid);
             case CLAUDEAI:
                 return chatWithClaudeAi(queryRequest, sseEmitter, uid);
@@ -237,7 +302,7 @@ public class ChatController {
     }
 
     /**
-     * 使用OPENAI SQL接口
+     * 使用OPENAI SQL接口 流式接口
      *
      * @param queryRequest
      * @param sseEmitter
@@ -246,11 +311,11 @@ public class ChatController {
      * @throws IOException
      */
     private SseEmitter chatWithOpenAi(ChatQueryRequest queryRequest, SseEmitter sseEmitter, String uid)
-        throws IOException {
+            throws IOException {
         String prompt = buildPrompt(queryRequest);
         if (prompt.length() / TOKEN_CONVERT_CHAR_LENGTH > MAX_PROMPT_LENGTH) {
             log.error("提示语超出最大长度:{}，输入长度:{}, 请重新输入", MAX_PROMPT_LENGTH,
-                prompt.length() / TOKEN_CONVERT_CHAR_LENGTH);
+                    prompt.length() / TOKEN_CONVERT_CHAR_LENGTH);
             throw new ParamBusinessException();
         }
 
@@ -260,15 +325,115 @@ public class ChatController {
         Message currentMessage = Message.builder().content(prompt).role(Message.Role.USER).build();
         messages.add(currentMessage);
         buildSseEmitter(sseEmitter, uid);
+//
+//        //国内需要代理
+//        Proxy proxy = Proxys.http("192.168.110.14", 7890);
+//        //socks5 代理
+//        // Proxy proxy = Proxys.socks5("127.0.0.1", 1080);
+//
+//        ChatGPT chatGPT = ChatGPT.builder()
+////                .apiKey("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")
+//                .apiKey("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")
+//                .proxy(proxy)
+//                .apiHost("https://api.openai.com/") //反向代理地址
+//                .build()
+//                .init();
+//
+////        String res = chatGPT.chat("写一段七言绝句诗，题目是：火锅！");
+//        String res = chatGPT.chat(prompt);
+////        ChatCompletionResponse chatCompletionResponse = chatGPT.chatCompletion(messages);
+//        System.out.println(res);
+
 
         OpenAIEventSourceListener openAIEventSourceListener = new OpenAIEventSourceListener(sseEmitter);
         OpenAIClient.getInstance().streamChatCompletion(messages, openAIEventSourceListener);
-        LocalCache.CACHE.put(uid, JSONUtil.toJsonStr(messages), LocalCache.TIMEOUT);
+        //LocalCache.CACHE.put(uid, JSONUtil.toJsonStr(messages), LocalCache.TIMEOUT);
         return sseEmitter;
     }
 
     /**
+     * 使用OPENAI SQL接口 普通接口
+     *
+     * @param queryRequest
+     * @param sseEmitter
+     * @param uid
+     * @return
+     * @throws IOException
+     */
+    private ApiResult chatWithOpenAiNormal(ChatQueryRequest queryRequest, SseEmitter sseEmitter, String uid)
+            throws IOException {
+        ApiResult apiResult = ApiResult.instanceFail();
+        String prompt = buildPrompt(queryRequest);
+        if (prompt.length() / TOKEN_CONVERT_CHAR_LENGTH > MAX_PROMPT_LENGTH) {
+            log.error("提示语超出最大长度:{}，输入长度:{}, 请重新输入", MAX_PROMPT_LENGTH,
+                    prompt.length() / TOKEN_CONVERT_CHAR_LENGTH);
+            throw new ParamBusinessException();
+        }
+
+        List<Message> messages = new ArrayList<>();
+        prompt = prompt.replaceAll("#", "");
+        log.info(prompt);
+        Message currentMessage = Message.builder().content(prompt).role(Message.Role.USER).build();
+        messages.add(currentMessage);
+        buildSseEmitter(sseEmitter, uid);
+//
+//        //国内需要代理
+//        Proxy proxy = Proxys.http("192.168.110.14", 7890);
+//        //socks5 代理
+//        // Proxy proxy = Proxys.socks5("127.0.0.1", 1080);
+//
+//        ChatGPT chatGPT = ChatGPT.builder()
+////                .apiKey("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")
+//                .apiKey("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")
+//                .proxy(proxy)
+//                .apiHost("https://api.openai.com/") //反向代理地址
+//                .build()
+//                .init();
+//
+////        String res = chatGPT.chat("写一段七言绝句诗，题目是：火锅！");
+//        String res = chatGPT.chat(prompt);
+////        ChatCompletionResponse chatCompletionResponse = chatGPT.chatCompletion(messages);
+//        System.out.println(res);
+
+
+        try {
+            Map<String, Object> dataMap = new HashMap<>();
+            ChatCompletionResponse chatCompletionResponse = OpenAIClient.getNormalInstance().chatCompletion(messages);
+            if (chatCompletionResponse != null && chatCompletionResponse.getChoices() != null) {
+                List<ChatChoice> choicesList = chatCompletionResponse.getChoices();
+
+                List<String> answerList = new ArrayList<>();
+                for (ChatChoice chatChoiceLoop : choicesList) {
+                    Message message = chatChoiceLoop.getMessage();
+                    if (message != null) {
+                        answerList.add(message.getContent().replace("\n"," "));
+                    }
+
+
+                }
+                dataMap.put("answers",answerList);
+            }
+//            chatCompletionResponse.getChoices().forEach(e -> {
+//                System.out.println(e.getMessage() != null ? e.getMessage().getContent() : "未找到可用信息");
+//            });
+            apiResult.setData(dataMap);
+            apiResult.setCode(ApiResult.SUCCESS_CODE);
+            LocalCache.CACHE.put(uid, JSONUtil.toJsonStr(messages), LocalCache.TIMEOUT);
+        } catch (Exception e) {
+            apiResult.setMessage(String.format("连接ChatGPT出错:%s",e.getMessage()));
+            log.error("连接ChatGPT出错:{}", e);
+        }
+
+
+//        OpenAIEventSourceListener openAIEventSourceListener = new OpenAIEventSourceListener(sseEmitter);
+//        OpenAIClient.getInstance().streamChatCompletion(messages, openAIEventSourceListener);
+
+        return apiResult;
+    }
+
+    /**
      * 使用OPENAI SQL接口
+     * //TODO 测试接口 Chat2dbAi
      *
      * @param queryRequest
      * @param sseEmitter
@@ -277,11 +442,11 @@ public class ChatController {
      * @throws IOException
      */
     private SseEmitter chatWithChat2dbAi(ChatQueryRequest queryRequest, SseEmitter sseEmitter, String uid)
-        throws IOException {
+            throws IOException {
         String prompt = buildPrompt(queryRequest);
         if (prompt.length() / TOKEN_CONVERT_CHAR_LENGTH > MAX_PROMPT_LENGTH) {
             log.error("exceed max token length:{}，input length:{}", MAX_PROMPT_LENGTH,
-                prompt.length() / TOKEN_CONVERT_CHAR_LENGTH);
+                    prompt.length() / TOKEN_CONVERT_CHAR_LENGTH);
             throw new ParamBusinessException();
         }
 
@@ -314,7 +479,7 @@ public class ChatController {
                     prompt.length() / TOKEN_CONVERT_CHAR_LENGTH);
             throw new ParamBusinessException();
         }
-        List<AzureChatMessage> messages = (List<AzureChatMessage>)LocalCache.CACHE.get(uid);
+        List<AzureChatMessage> messages = (List<AzureChatMessage>) LocalCache.CACHE.get(uid);
         if (CollectionUtils.isNotEmpty(messages)) {
             if (messages.size() >= contextLength) {
                 messages = messages.subList(1, contextLength);
@@ -372,17 +537,17 @@ public class ChatController {
             log.info(LocalDateTime.now() + ", uid#" + uid + ", on completion");
         });
         sseEmitter.onTimeout(
-            () -> log.info(LocalDateTime.now() + ", uid#" + uid + ", on timeout#" + sseEmitter.getTimeout()));
+                () -> log.info(LocalDateTime.now() + ", uid#" + uid + ", on timeout#" + sseEmitter.getTimeout()));
         sseEmitter.onError(
-            throwable -> {
-                try {
-                    log.info(LocalDateTime.now() + ", uid#" + "765431" + ", on error#" + throwable.toString());
-                    sseEmitter.send(SseEmitter.event().id("765431").name("发生异常！").data(throwable.getMessage())
-                        .reconnectTime(3000));
-                } catch (IOException e) {
-                    e.printStackTrace();
+                throwable -> {
+                    try {
+                        log.info(LocalDateTime.now() + ", uid#" + "765431" + ", on error#" + throwable.toString());
+                        sseEmitter.send(SseEmitter.event().id("765431").name("发生异常！").data(throwable.getMessage())
+                                .reconnectTime(3000));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
         );
         return sseEmitter;
     }
@@ -395,7 +560,7 @@ public class ChatController {
      * @return
      */
     private Map<String, List<TableColumn>> buildTableColumn(TableQueryParam tableQueryParam,
-        List<String> tableNames) {
+                                                            List<String> tableNames) {
         if (CollectionUtils.isEmpty(tableNames)) {
             return Maps.newHashMap();
         }
@@ -409,7 +574,7 @@ public class ChatController {
             return Maps.newHashMap();
         }
         return tableColumns.stream().filter(tableColumn -> tableNames.contains(tableColumn.getTableName())).collect(
-            Collectors.groupingBy(TableColumn::getTableName, Collectors.toList()));
+                Collectors.groupingBy(TableColumn::getTableName, Collectors.toList()));
     }
 
     /**
@@ -428,25 +593,25 @@ public class ChatController {
         TableQueryParam queryParam = chatConverter.chat2tableQuery(queryRequest);
         Map<String, List<TableColumn>> tableColumns = buildTableColumn(queryParam, queryRequest.getTableNames());
         List<String> tableSchemas = tableColumns.entrySet().stream().map(
-            entry -> String.format("%s(%s)", entry.getKey(),
-                entry.getValue().stream().map(TableColumn::getName).collect(
-                    Collectors.joining(", ")))).collect(Collectors.toList());
+                entry -> String.format("%s(%s)", entry.getKey(),
+                        entry.getValue().stream().map(TableColumn::getName).collect(
+                                Collectors.joining(", ")))).collect(Collectors.toList());
         String properties = String.join("\n#", tableSchemas);
         String prompt = queryRequest.getMessage();
         String promptType = StringUtils.isBlank(queryRequest.getPromptType()) ? PromptType.NL_2_SQL.getCode()
-            : queryRequest.getPromptType();
+                : queryRequest.getPromptType();
         PromptType pType = EasyEnumUtils.getEnum(PromptType.class, promptType);
         String ext = StringUtils.isNotBlank(queryRequest.getExt()) ? queryRequest.getExt() : "";
         String schemaProperty = CollectionUtils.isNotEmpty(tableSchemas) ? String.format(
-            "### 请根据以下table properties和SQL input%s. %s\n#\n### %s SQL tables, with their properties:\n#\n# "
-                + "%s\n#\n#\n### SQL input: %s", pType.getDescription(), ext, dataSourceType,
-            properties, prompt) : String.format("### 请根据以下SQL input%s. %s\n#\n### SQL input: %s",
-            pType.getDescription(), ext, prompt);
+                "### 请根据以下table properties和SQL input%s. %s\n#\n### %s SQL tables, with their properties:\n#\n# "
+                        + "%s\n#\n#\n### SQL input: %s", pType.getDescription(), ext, dataSourceType,
+                properties, prompt) : String.format("### 请根据以下SQL input%s. %s\n#\n### SQL input: %s",
+                pType.getDescription(), ext, prompt);
         switch (pType) {
             case SQL_2_SQL:
                 schemaProperty = StringUtils.isNotBlank(queryRequest.getDestSqlType()) ? String.format(
-                    "%s\n#\n### 目标SQL类型: %s", schemaProperty, queryRequest.getDestSqlType()) : String.format(
-                    "%s\n#\n### 目标SQL类型: %s", schemaProperty, dataSourceType);
+                        "%s\n#\n### 目标SQL类型: %s", schemaProperty, queryRequest.getDestSqlType()) : String.format(
+                        "%s\n#\n### 目标SQL类型: %s", schemaProperty, dataSourceType);
             default:
                 break;
         }

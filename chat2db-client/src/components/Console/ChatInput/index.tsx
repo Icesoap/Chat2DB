@@ -23,6 +23,7 @@ interface IProps {
 }
 
 function ChatInput(props: IProps) {
+
   const [value, setValue] = useState(props.value);
 
   const onPressEnter = (e: any) => {
@@ -68,6 +69,7 @@ function ChatInput(props: IProps) {
           type="primary"
           className={styles.enter}
           onClick={() => {
+              // alert("entry");
             if (value) {
               props.onPressEnter && props.onPressEnter(value);
             }
